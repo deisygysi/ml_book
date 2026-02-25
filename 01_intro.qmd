@@ -1,0 +1,267 @@
+# Introduction {#sec-ml-intro}
+
+As researchers in the biological sciences, we are often swimming in high-dimensional data—whether it is proteomics, genomics, transcriptomics, single-cell sequencing or any other omics. Transitioning from the classical frequentist statistics to a Machine Learning (ML) mindset is a powerful move for any novel biological discovery. ML techniques can help us uncover patterns, make predictions, and gain insights from complex datasets that traditional methods might miss.
+
+In this course, we will explore the fundamentals of Machine Learning with a focus on applications in the biological sciences. We will cover key concepts, algorithms, and practical implementations using R. By the end of this course, you will have a solid understanding of how to apply ML techniques to your own research questions.
+
+## What is Machine Learning? {#sec-what-is-ml}
+
+Machine Learning is a field of study within computer science that gives computers the ability to learn without being explicitly programmed to perform specific tasks. Instead of following a set of predefined rules, ML algorithms identify patterns in data and use these patterns to make predictions or decisions. ML was first coined by Arthur Samuel in 1959, who defined it as "the field of study that gives computers the ability to learn without being explicitly programmed." Even though ML has been around for decades, it has gained significant traction in recent years due to advancements in computational power, the availability of large datasets, and improvements in algorithms. ML uses statistical techniques to enable computers to improve their performance on a specific task over time as they are exposed to more data  (@fig-ml-landscape). 
+This is particularly useful in scenarios where traditional programming approaches are impractical or impossible due to the complexity of the data or the task at hand.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, fig.id=TRUE}
+#| label: fig-ml-landscape
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "The Landscape of Machine Learning in Biology"
+#| fig-alt: "A diagram showing three concentric circles representing Artificial Intelligence, Machine Learning, and Deep Learning, with a box highlighting applications in life sciences."
+
+
+library(ggplot2)
+library(ggforce)
+
+# 1. Define the data for the concentric circles
+df_circles <- data.frame(
+  x = c(0, 0, 0),
+  y = c(0, 0, 0),
+  r = c(3, 2, 1),
+  category = factor(c("AI", "ML", "DL"),
+                    levels = c("AI", "ML", "DL"))
+)
+
+# 2. Labels with a more generalized ML definition
+df_labels <- data.frame(
+  x = c(0, 0, 0),
+  y = c(2.4, 1.4, 0),
+  label = c("Artificial Intelligence", "Machine Learning", "Deep Learning"),
+  desc = c("The broad effort to automate\nintellectual tasks.",
+           "Algorithms that extract patterns from data\nto make predictions on unseen examples.",
+           "Specialized ML using neural networks\nto learn hierarchical representations.")
+)
+
+# 3. Create the plot
+p <- ggplot() +
+  # Draw the circles
+  geom_circle(data = df_circles, aes(x0 = x, y0 = y, r = r, fill = category), 
+              alpha = 0.2, color = "grey30", linewidth = 0.8) +
+  
+  # Core text labels
+  geom_text(data = df_labels, aes(x = x, y = y + 0.2, label = label), 
+            fontface = "bold", size = 5) +
+  geom_text(data = df_labels, aes(x = x, y = y - 0.2, label = desc), 
+            size = 3.5, lineheight = 0.9) +
+  
+  # --- THE "BIO BOX" ---
+  # Expanded to include diverse biological applications
+  annotate("rect", xmin = 1.8, xmax = 4.0, ymin = -2.5, ymax = -1.2, 
+           fill = "white", color = "grey70", alpha = 0.8, linewidth = 0.5) +
+  
+  annotate("text", x = 2.9, y = -1.4, label = "Applications in Life Sciences", 
+           fontface = "bold.italic", size = 3.5) +
+  
+  annotate("text", x = 2.9, y = -1.9, 
+           label = "• Omics & Biomarker Discovery\n• Ethology & Behavioral Tracking\n• Species Distribution Modeling\n• Protein Structure Prediction", 
+           size = 3, lineheight = 1.1, hjust = 0.5) +
+  
+  # Arrow pointing from the box to the ML circle
+  annotate("curve", x = 2.2, y = -1.2, xend = 1.5, yend = -0.5, 
+           curvature = 0.2, arrow = arrow(length = unit(0.2, "cm")), color = "grey40") +
+  
+  # Formatting
+  scale_fill_manual(values = c("#BDD7EE", "#F8CBAD", "#A9D08E")) +
+  theme_void() +
+  theme(legend.position = "none",
+        plot.title = element_text(hjust = 0.5, face = "bold", size = 16, margin = margin(b = 10)),
+        plot.margin = margin(10, 10, 10, 10)) +
+  # labs(title = "Figure 1.1: The Landscape of Machine Learning in Biology") +
+  expand_limits(x = c(-3.5, 4.2), y = c(-3.5, 3.5)) +
+  coord_fixed()
+
+# Display
+print(p)
+```
+
+## Why Machine Learning in Biology? {#sec-why-ml-bio}
+
+Biological data is inherently complex and high-dimensional. Traditional univariate statistical methods often fall short in capturing the intricate relationships within such data. Machine Learning offers a suite of tools that can handle this complexity, allowing us to:
+
+-   **Identify Patterns**: ML algorithms can uncover hidden patterns in large datasets that may not be apparent through traditional analysis.
+-   **Make Predictions**: ML models can predict outcomes based on input data, which is invaluable for tasks such as disease diagnosis, treatment response prediction, and more.
+-   **Automate Analysis**: ML can automate the analysis of large datasets, saving time and resources.
+-   **Integrate Diverse Data Types**: ML techniques can integrate various data types (e.g., genomic, proteomic, clinical) to provide a holistic view of biological systems.
+
+By leveraging Machine Learning, we can enhance our ability to make sense of complex biological data and drive novel discoveries in the life sciences.
+
+## Course Structure
+
+This course is structured into several modules, each focusing on different aspects of Machine Learning:
+
+1.  **Supervised Learning**: Techniques where the model is trained on labeled data to make predictions.
+2.  **Unsupervised Learning**: Methods for discovering patterns in unlabeled data.
+3.  **Deep Learning**: An introduction to neural networks and their applications in biology.
+4.  **Model Evaluation**: Strategies for assessing the performance of ML models.
+
+Each module will include theoretical concepts, practical examples, and hands-on exercises using R. We will also explore real-world biological datasets to illustrate the application of ML techniques in research.
+
+## Types of Machine Learning
+
+Machine Learning can be broadly categorized into three main types: Supervised Learning, Unsupervised Learning, and Reinforcement Learning, as depicted in @fig-ml-types. In this course, we will focus primarily on the first two types, as they are most relevant to biological data analysis.
+
+-   **Supervised Learning**: In supervised learning, the model is trained on a **labeled dataset**, meaning that each *input data point* is paired with a corresponding *output label*. The goal is for the model to learn the mapping from inputs to outputs so that it can make accurate predictions on new, unseen data. Common algorithms include decision trees, support vector machines, and neural networks. Applications in biology include disease classification based on gene expression profiles and predicting protein functions. We will explore various supervised learning techniques in detail in [Chapter @sec-ml-supervised].
+-   **Unsupervised Learning**: Unsupervised learning involves training models on *unlabeled data* to identify inherent patterns or structures within the data. The model learns to group *similar data points together* or to *reduce the dimensionality* of the data for easier visualization and analysis. Common techniques include clustering algorithms (like k-means and hierarchical clustering) and dimensionality reduction methods (like PCA and t-SNE). In biology, unsupervised learning can be used for tasks such as identifying cell types in single-cell RNA sequencing data or discovering subtypes of diseases based on molecular profiles. We will cover unsupervised learning methods in detail in [Chapter @sec-ml-unsupervised].
+-   **Reinforcement Learning**: Although not the focus of this course, reinforcement learning is another type of ML where an agent learns to make decisions by taking actions in an environment to maximize cumulative rewards. This approach is less commonly used in biological data analysis but has potential applications in areas like drug discovery and personalized medicine.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+#| label: fig-ml-types
+#| fig-cap: "The Three Main Types of Machine Learning: Supervised, Unsupervised, and Reinforcement Learning."
+#| fig-alt: "A three-panel diagram illustrating Supervised Learning with labeled data, Unsupervised Learning with unlabeled data, and Reinforcement Learning with an agent interacting with an environment."
+#| fig-width: 8
+#| fig-height: 8
+
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+
+# --- Global Theme and Helper ---
+panel_theme <- theme_void() + 
+  theme(plot.title = element_text(face = "bold", size = 16, hjust = 0.5, margin = margin(b=10)))
+
+# 1. SUPERVISED LEARNING (Corrected Box & Labels)
+grid_data <- expand.grid(Feature = 1:6, Sample = 1:4) %>%
+  mutate(
+    BaseColor = as.factor(Feature),
+    Intensity = runif(n(), 0.4, 1) 
+  )
+
+labels_data <- data.frame(
+  Sample = 1:4,
+  Label = c("Type A", "Type B", "Type A", "Type A")
+)
+
+p1 <- ggplot() +
+  # Panel Background
+  annotate("rect", xmin = -0.5, xmax = 9, ymin = -0.5, ymax = 12, fill = "#d6eaf8", alpha = 0.5) +
+  annotate("text", x = 4.25, y = 11, label = "Supervised\nLearning", size = 6, fontface = "bold") +
+  
+  # Input Box - adjusted to wrap the 1:6 features and 1:4 samples
+  annotate("rect", xmin = 0.5, xmax = 6.5, ymin = 0.5 + 5.5, ymax = 4.5 + 5.5, fill = "white", color = "grey70") +
+  geom_point(data = grid_data, aes(x = Feature, y = Sample + 5.5, color = BaseColor, alpha = Intensity), size = 5) +
+  
+  # Column Headers
+  annotate("text", x = 3.5, y = 10.3, label = "Input Data (Features)", size = 3, fontface = "bold") +
+  annotate("text", x = 8, y = 10.3, label = "Label", size = 3, fontface = "bold") +
+  
+  # Target Labels (Outside the box)
+  geom_point(data = labels_data, aes(x = 8, y = Sample + 5.5, fill = Label), size = 5, shape = 21, color = "black") +
+  
+  # Model Connection
+  annotate("segment", x = 4.25, xend = 4.25, y = 5.5, yend = 4.5, arrow = arrow(length = unit(0.2, "cm"))) +
+  annotate("label", x = 4.25, y = 4, label = "ML Model\n(Random Forest)", fill = "white") +
+  
+  # Predicted Output
+  annotate("text", x = 4.25, y = 2.7, label = "Predicted Labels", size = 3.5) +
+  annotate("point", x = c(3.25, 4.25, 5.25), y = 2, fill = c("#E41A1C", "#377EB8", "#E41A1C"), shape = 21, size = 5) +
+  
+  # Goal box
+  annotate("rect", xmin = 0.5, xmax = 8, ymin = 0, ymax = 1.3, fill = "white", color = "black") +
+  annotate("text", x = 4.25, y = 0.65, label = "Goal: Predict labels for new data\nExample: Classify tumors", size = 3) +
+  
+  scale_color_brewer(palette = "GnBu", guide = "none") + 
+  scale_fill_manual(values = c("Type A" = "#E41A1C", "Type B" = "#377EB8"), guide = "none") + 
+  scale_alpha_identity() +
+  panel_theme +
+  coord_cartesian(xlim = c(-0.5, 9), ylim = c(-0.5, 12))
+
+# 2. UNSUPERVISED LEARNING
+set.seed(123)
+unlabeled <- data.frame(x = rnorm(40, 3.5, 1), y = rnorm(40, 8, 0.8))
+
+p2 <- ggplot() +
+  annotate("rect", xmin = -1, xmax = 8, ymin = -0.5, ymax = 12, fill = "#d5f5e3", alpha = 0.5) +
+  annotate("text", x = 3.5, y = 11, label = "Unsupervised\nLearning", size = 6, fontface = "bold") +
+  geom_point(data = unlabeled, aes(x, y), color = "grey50", alpha = 0.6, size = 2.5) +
+  annotate("text", x = 3.5, y = 10.3, label = "Input Data (Unlabeled)", size = 3, fontface = "bold") +
+  annotate("segment", x = 3.5, xend = 3.5, y = 6, yend = 4.8, arrow = arrow(length = unit(0.2, "cm"))) +
+  annotate("label", x = 3.5, y = 4, label = "ML Model\n(PCA / K-Means)", fill = "white") +
+  annotate("text", x = 3.5, y = 2.7, label = "Output Clusters", size = 3.5) +
+  annotate("point", x = c(2.8, 3.2, 4.2, 3.8), y = c(2, 1.7, 2, 1.7), 
+           color = c("purple", "purple", "darkgreen", "darkgreen"), size = 5) +
+  annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.3, fill = "white", color = "black") +
+  annotate("text", x = 3.5, y = 0.65, label = "Goal: Find hidden structure\nExample: Identify cell types", size = 3) +
+  panel_theme +
+  coord_cartesian(xlim = c(-1, 8), ylim = c(-0.5, 12))
+
+# 3. REINFORCEMENT LEARNING
+p3 <- ggplot() +
+  annotate("rect", xmin = -1, xmax = 8, ymin = -0.5, ymax = 12, fill = "#fdebd0", alpha = 0.5) +
+  annotate("text", x = 3.5, y = 11, label = "Reinforcement\nLearning", size = 6, fontface = "bold") +
+  annotate("label", x = 3.5, y = 8.5, label = "Agent\n(Decision Maker)", size = 4) +
+  annotate("label", x = 3.5, y = 4.5, label = "Environment\n(Drug Discovery)", size = 4) +
+  annotate("curve", x = 4.5, y = 8, xend = 4.5, yend = 5, curvature = -0.7, arrow = arrow(length = unit(0.2, "cm"))) +
+  annotate("text", x = 6.2, y = 6.5, label = "Action", size = 3) +
+  annotate("curve", x = 2.5, y = 5, xend = 2.5, yend = 8, curvature = -0.7, arrow = arrow(length = unit(0.2, "cm"))) +
+  annotate("text", x = 0.8, y = 6.5, label = "Reward + State", size = 3) +
+  annotate("rect", xmin = 0, xmax = 7, ymin = 0, ymax = 1.3, fill = "white", color = "black") +
+  annotate("text", x = 3.5, y = 0.65, label = "Goal: Maximize reward\nExample: Optimize dosage", size = 3) +
+  panel_theme +
+  coord_cartesian(xlim = c(-1, 8), ylim = c(-0.5, 12))
+
+# Final Patchwork
+(p1 | p2 | p3) + plot_annotation(theme = theme(plot.title = element_text(size = 22, hjust = 0.5, face="bold")))
+```
+
+## Methodological Challenges in Biological Machine Learning
+
+While Machine Learning offers powerful tools for biological data analysis, several methodological challenges must be addressed to ensure robust and meaningful results. Below, we outline some of the key challenges specific to the application of ML in biology.
+
+### Data Quality and Preprocessing
+
+Biological datasets often suffer from issues such as missing values, batch effects, and technical variability. Proper data preprocessing is crucial to mitigate these issues.
+
+-   **Normalization and Scaling:** Techniques such as log transformation, z-score normalization, and batch effect correction (e.g., ComBat) are essential to ensure that the data is comparable across samples and conditions.
+
+-   **Feature Selection:** Given the high dimensionality of biological data, selecting relevant features (e.g., genes, proteins) is critical to reduce noise and improve model performance. Methods such as variance thresholding, recursive feature elimination, and domain knowledge-based selection can be employed.
+
+### The "Curse of Dimensionality" and Data Scarcity
+
+In computational biology, we frequently encounter the $p \gg n$ problem, where the number of features (genes/ transcripts/ proteins/ metabolites) vastly exceeds the number of observations (biological replicates/ individuals).
+
+-   **Dimensionality Concerns:** As the feature space expands, the volume of the space increases so rapidly that the available data becomes sparse. This sparsity makes it mathematically trivial to find a separating hyperplane that appears significant but lacks biological reality. Often, models trained in such high-dimensional spaces will perform well on training data but fail to generalize to new samples.
+
+-   **Quality Constraints:** Biological data is inherently noisy, susceptible to batch effects, and expensive to generate. Models trained on insufficient or poorly normalized data will inevitably reflect technical artifacts rather than true physiological signals. Moreover, the limited sample sizes typical in biological studies exacerbate the risk of spurious correlations.
+
+### Overfitting and Generalization Error
+
+Overfitting represents the most significant threat to the transition from computational predictions to biological insights. Overfitting occurs when a model possesses excessive degrees of freedom, allowing it to interpolate the stochastic noise within the training set rather than capturing the underlying biological manifold. In high-dimensional transcriptomics, where $p \gg n$, the risk of "memorizing" the training data is exceptionally high. Obviously, this is a critical issue in most of the biological discoveries, where the goal is to identify features that are predictive across diverse populations.
+
+-   **The Statistical Mechanism**: In high-dimensional spaces, points are naturally isolated, we say that the data is sparse. A complex algorithm, such as an unpruned Decision Tree or a high-capacity Support Vector Machine, can easily construct a decision boundary that achieves zero training error by isolating these specific coordinates. However, such a boundary is unlikely to represent the true population distribution, leading to a precipitous drop in performance when applied to independent validation cohorts.
+
+-   **Regularization and Constraint**: To mitigate this, we must introduce **penalization terms**—such as the $L_1$ (Lasso) or $L_2$ (Ridge) norms—which mathematically constrain the coefficient weights, effectively "shrinking" less informative features to zero. This enforces a simpler model architecture that prioritizes broad biological trends over sample-specific idiosyncrasies. We will explore these techniques in detail in [Section @sec-regularization].
+
+-   **Rigorous Validation Frameworks**: The antidote to overfitting is a robust validation architecture. This involves the strict separation of data into training, testing, and ideally, completely independent external validation sets. Different cross-validation strategies (e.g., k-fold, stratified) should be employed to ensure that the model's performance metrics (e.g., accuracy, AUC-ROC) reflect its ability to generalize beyond the training data. We will discuss these strategies in detail in [Chapter @sec-ml-eval].
+
+-   **The Biological Cost of High Variance**: From a translational perspective, an overfitted model produces "phantom biomarkers." These are genes that appear statistically significant due to technical artifacts (e.g., batch effects or library prep variance) but fail to replicate in follow-up experiments. Identifying these errors early via ML validation saves significant time and capital that would otherwise be spent on futile *in vitro* or *in vivo* validation.
+
+### The Interpretability-Complexity Paradigm
+
+The application of Machine Learning in *omics* often forces a trade-off between a model’s **predictive capacity** and its **interpretability**. While high-capacity models—such as Gradient Boosted Trees, Random Forests, or Deep Neural Networks—can capture complex, non-linear gene-gene interactions, they often function as "black boxes," providing little intuition regarding the biological phenomena driving the classification.
+
+-   **Mechanistic Transparency vs. Predictive Accuracy**: In a clinical research context, the *rationale* behind a prediction is often as critical as the prediction itself. A model that achieves high AUC (Area Under the Curve) but lacks transparency cannot be used to generate new biological hypotheses or inform therapeutic interventions. To bridge this gap, we employ **explainable AI (XAI)** techniques, such as **SHAP (SHapley Additive exPlanations)** or **LIME**, which mathematically decompose the contribution of each gene to a specific sample's prediction.
+
+-   **Strategic Model Selection**: The choice of algorithm must be dictated by the research objective. If the goal is pure diagnostic accuracy, ensemble methods are appropriate. However, if the objective is **biomarker identification**, we must prioritize models with intrinsic feature selection properties (e.g., Sparse Partial Least Squares or Elastic Net). This allows us to map mathematical importance back to biological relevance—transforming "important features" into actionable "biomarkers" that can be validated via pathway enrichment or Gene Ontology (GO) analysis.
+
+-   **The Burden of Validation**: A complex, uninterpretable model is difficult to audit for "leakage" or technical bias. By maintaining interpretability, we ensure that the model is making decisions based on genuine biological signal (e.g., the upregulation of an oncogenic pathway) rather than a technical artifact (e.g., different RNA extraction kits), thereby increasing the likelihood of successful translation to the wet lab.
+
+### Computational Logistics and Scalability
+
+The processing of large-scale *omics* datasets requires significant memory allocation and optimized algorithmic implementations.
+
+-   **Infrastructural Demands:** Complex architectures, particularly in deep learning or iterative manifold learning (UMAP/t-SNE), necessitate high-performance computing (HPC) environments. Researchers must evaluate the trade-off between algorithmic complexity and the marginal gain in predictive power.
+
+### Algorithmic Bias and Ethical Validity
+
+The translation of Machine Learning models into clinical diagnostics needs a profound commitment to data diversity and ethical transparency.
+
+-   **Representation Bias:** If the training data lacks ancestral or demographic diversity, the resulting selected genes may exhibit reduced efficacy across broader populations, inadvertently perpetuating healthcare disparities.
+
+-   **Accountability:** The use of automated decision-making in healthcare requires rigorous auditing of the training pipeline to ensure that confounding variables (e.g., age, sex, or technical batch) are not driving the model’s classification.

@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.30">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>2&nbsp; The Core Workflow of ML &amp; Biological Pre-processing – Machine Learning for Bioinformatics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./03_ml_unsupervised.html" rel="next">
+<link href="./01_intro.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-3a01e2046221230fdceeea94b1ec5d67.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-5588f382035e9e1324818ef5a1dcecb9.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./02_ml_basics.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The Core Workflow of ML &amp; Biological Pre-processing</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Machine Learning for Bioinformatics</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_ml_basics.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The Core Workflow of ML &amp; Biological Pre-processing</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_ml_unsupervised.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Unsupervised Machine Learning - Dimensionality Reduction and Clustering</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_ml_supervised.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Supervised Machine Learning</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_ml_deep_learning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Summary</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./06_ml_evaluation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Evaluating Machine Learning Models</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">References</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#the-ml-workflow-overview" id="toc-the-ml-workflow-overview" class="nav-link active" data-scroll-target="#the-ml-workflow-overview"><span class="header-section-number">2.1</span> The ML Workflow Overview</a></li>
+  <li><a href="#sec-data-spending" id="toc-sec-data-spending" class="nav-link" data-scroll-target="#sec-data-spending"><span class="header-section-number">2.2</span> The Spending Plan: Data Splitting Strategies</a>
+  <ul class="collapse">
+  <li><a href="#the-initial-split-training-vs.-testing" id="toc-the-initial-split-training-vs.-testing" class="nav-link" data-scroll-target="#the-initial-split-training-vs.-testing"><span class="header-section-number">2.2.1</span> The Initial Split: Training vs.&nbsp;Testing</a></li>
+  <li><a href="#stratified-sampling" id="toc-stratified-sampling" class="nav-link" data-scroll-target="#stratified-sampling"><span class="header-section-number">2.2.2</span> Stratified Sampling</a></li>
+  </ul></li>
+  <li><a href="#sec-preprocessing" id="toc-sec-preprocessing" class="nav-link" data-scroll-target="#sec-preprocessing"><span class="header-section-number">2.3</span> Pre-processing for Biological Data</a>
+  <ul class="collapse">
+  <li><a href="#scaling-and-centering" id="toc-scaling-and-centering" class="nav-link" data-scroll-target="#scaling-and-centering"><span class="header-section-number">2.3.1</span> Scaling and Centering</a></li>
+  <li><a href="#near-zero-variance-nzv" id="toc-near-zero-variance-nzv" class="nav-link" data-scroll-target="#near-zero-variance-nzv"><span class="header-section-number">2.3.2</span> Near-Zero Variance (NZV)</a></li>
+  <li><a href="#the-recipe-approach" id="toc-the-recipe-approach" class="nav-link" data-scroll-target="#the-recipe-approach"><span class="header-section-number">2.3.3</span> The recipe Approach</a></li>
+  </ul></li>
+  <li><a href="#sec-cross-val" id="toc-sec-cross-val" class="nav-link" data-scroll-target="#sec-cross-val"><span class="header-section-number">2.4</span> Cross-Validation: Maximizing Training Data Utility</a>
+  <ul class="collapse">
+  <li><a href="#sec-strat-cv" id="toc-sec-strat-cv" class="nav-link" data-scroll-target="#sec-strat-cv"><span class="header-section-number">2.4.1</span> Stratified K-Fold: Ensuring Biological Representation</a></li>
+  </ul></li>
+  <li><a href="#summary-and-concluding-remarks" id="toc-summary-and-concluding-remarks" class="nav-link" data-scroll-target="#summary-and-concluding-remarks"><span class="header-section-number">2.5</span> Summary and Concluding Remarks</a>
+  <ul class="collapse">
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><span class="header-section-number">2.5.1</span> Key Takeaways</a></li>
+  <li><a href="#final-remarks" id="toc-final-remarks" class="nav-link" data-scroll-target="#final-remarks"><span class="header-section-number">2.5.2</span> Final Remarks</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The Core Workflow of ML &amp; Biological Pre-processing</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>In the transition from classical biostatistics to Machine Learning, the most critical shift is moving from <strong>explaining the past</strong> to <strong>predicting the future</strong>.</p>
+<p>This means that, unlike traditional hypothesis testing where we focus on <span class="math inline">\(p\)</span>-values and confidence intervals, in ML we prioritize <strong>out-of-sample performance</strong>, or well can we generalize to new, unseen data.</p>
+<p>While a <span class="math inline">\(p\)</span>-value tells us how unlikely a result is under the null hypothesis, an ML model’s utility is measured by its <strong>Generalization Error</strong>: how well it performs on a sample it has never seen before.</p>
+<section id="the-ml-workflow-overview" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="the-ml-workflow-overview"><span class="header-section-number">2.1</span> The ML Workflow Overview</h2>
+<p>A robust ML pipeline for biological data follows these non-negotiable steps:</p>
+<ol type="1">
+<li><strong>Data Cleaning</strong>: Handling NAs and filtering low-variance features (e.g., genes with near-zero counts).</li>
+<li><strong>Data Spending</strong>: Splitting the data into training and testing sets to prevent data leakage.</li>
+<li><strong>Biological Pre-processing</strong>: Normalizing, filtering, and transforming biological data</li>
+<li><strong>Model Training</strong>: Fitting the algorithm to the training data.</li>
+<li><strong>Evaluation</strong>: Testing the “unseen” data to see if the model actually learned biology or just memorized noise.</li>
+</ol>
+<p>For our course, we will use the TCGA Cholangiocarcinoma (CHOL) cohort. We will use the <code>{TCGAbiolinks}</code> package to download and prepare the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare our Data for Machine Learning with </span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># TCGA Cholangiocarcinoma (CHOL) Cohort</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(TCGAbiolinks)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SummarizedExperiment)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Query only the Cholangiocarcinoma cohort</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>query_chol <span class="ot">&lt;-</span> <span class="fu">GDCquery</span>(</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">project =</span> <span class="st">"TCGA-CHOL"</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">data.category =</span> <span class="st">"Transcriptome Profiling"</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">data.type =</span> <span class="st">"Gene Expression Quantification"</span>,</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">workflow.type =</span> <span class="st">"STAR - Counts"</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#  Load the data into a SummarizedExperiment object</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>chol_se <span class="ot">&lt;-</span> <span class="fu">GDCprepare</span>(query_chol) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+|                                                    |  0%                      
+|=                                                   |2.272727% ~2 s remaining  
+|==                                                  |4.545455% ~2 s remaining  
+|===                                                 |6.818182% ~2 s remaining  
+|====                                                |9.090909% ~2 s remaining  
+|=====                                               |11.36364% ~2 s remaining  
+|=======                                             |13.63636% ~1 s remaining  
+|========                                            |15.90909% ~1 s remaining  
+|=========                                           |18.18182% ~3 s remaining  
+|==========                                          |20.45455% ~2 s remaining  
+|===========                                         |22.72727% ~2 s remaining  
+|=============                                       | 25% ~2 s remaining       
+|==============                                      |27.27273% ~2 s remaining  
+|===============                                     |29.54545% ~2 s remaining  
+|================                                    |31.81818% ~2 s remaining  
+|=================                                   |34.09091% ~2 s remaining  
+|==================                                  |36.36364% ~2 s remaining  
+|====================                                |38.63636% ~1 s remaining  
+|=====================                               |40.90909% ~2 s remaining  
+|======================                              |43.18182% ~2 s remaining  
+|=======================                             |45.45455% ~2 s remaining  
+|========================                            |47.72727% ~1 s remaining  
+|==========================                          | 50% ~1 s remaining       
+|===========================                         |52.27273% ~1 s remaining  
+|============================                        |54.54545% ~1 s remaining  
+|=============================                       |56.81818% ~1 s remaining  
+|==============================                      |59.09091% ~1 s remaining  
+|===============================                     |61.36364% ~1 s remaining  
+|=================================                   |63.63636% ~1 s remaining  
+|==================================                  |65.90909% ~1 s remaining  
+|===================================                 |68.18182% ~1 s remaining  
+|====================================                |70.45455% ~1 s remaining  
+|=====================================               |72.72727% ~1 s remaining  
+|=======================================             | 75% ~1 s remaining       
+|========================================            |77.27273% ~1 s remaining  
+|=========================================           |79.54545% ~1 s remaining  
+|==========================================          |81.81818% ~0 s remaining  
+|===========================================         |84.09091% ~0 s remaining  
+|============================================        |86.36364% ~0 s remaining  
+|==============================================      |88.63636% ~0 s remaining  
+|===============================================     |90.90909% ~0 s remaining  
+|================================================    |93.18182% ~0 s remaining  
+|=================================================   |95.45455% ~0 s remaining  
+|==================================================  |97.72727% ~0 s remaining  
+|====================================================|100% ~0 s remaining       
+|====================================================|100%                      Completed after 2 s </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Download and prepare the data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract TPM using </span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>tpm_data <span class="ot">&lt;-</span> <span class="fu">assay</span>(chol_se, <span class="st">"tpm_unstrand"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Quick Metadata Link</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>metadata <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">colData</span>(chol_se)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barcode, sample_type)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(metadata)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                                  barcode         sample_type
+TCGA-W5-AA39-01A-11R-A41I-07 TCGA-W5-AA39-01A-11R-A41I-07       Primary Tumor
+TCGA-3X-AAVB-01A-31R-A41I-07 TCGA-3X-AAVB-01A-31R-A41I-07       Primary Tumor
+TCGA-W5-AA2R-11A-11R-A41I-07 TCGA-W5-AA2R-11A-11R-A41I-07 Solid Tissue Normal
+TCGA-W5-AA38-01A-11R-A41I-07 TCGA-W5-AA38-01A-11R-A41I-07       Primary Tumor
+TCGA-W5-AA2G-01A-11R-A41I-07 TCGA-W5-AA2G-01A-11R-A41I-07       Primary Tumor
+TCGA-W5-AA2Q-11A-11R-A41I-07 TCGA-W5-AA2Q-11A-11R-A41I-07 Solid Tissue Normal</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. ML Preparation (Transpose)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Often in ML, TPM or FPKM values are used directly</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># We need the samples as rows and genes as columns</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># We filter for low-expression genes to remove noise</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># For TPM, a common threshold is &gt; 0.1 or &gt; 1 in a certain % of samples</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>keep <span class="ot">&lt;-</span> <span class="fu">rowSums</span>(tpm_data <span class="sc">&gt;</span> <span class="dv">1</span>) <span class="sc">&gt;=</span> <span class="dv">5</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>tpm_filtered <span class="ot">&lt;-</span> tpm_data[keep, ]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(tpm_filtered) <span class="co"># Check dimensions after filtering</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 22215    44</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tpm_filtered[, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>]) <span class="co"># View first 5 samples for first few genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                   TCGA-W5-AA39-01A-11R-A41I-07 TCGA-3X-AAVB-01A-31R-A41I-07
+ENSG00000000003.15                      31.4284                      33.0598
+ENSG00000000419.13                      53.0852                      84.5487
+ENSG00000000457.14                       7.8177                       5.1603
+ENSG00000000460.17                       2.9002                       2.4024
+ENSG00000000938.13                       1.6248                      10.6799
+ENSG00000000971.16                     543.8357                      33.0199
+                   TCGA-W5-AA2R-11A-11R-A41I-07 TCGA-W5-AA38-01A-11R-A41I-07
+ENSG00000000003.15                      46.9606                     133.6240
+ENSG00000000419.13                      35.9064                     103.3878
+ENSG00000000457.14                       2.4906                       4.1205
+ENSG00000000460.17                       0.5763                       2.6406
+ENSG00000000938.13                       2.9092                       3.9425
+ENSG00000000971.16                     465.5344                       4.0710
+                   TCGA-W5-AA2G-01A-11R-A41I-07
+ENSG00000000003.15                      29.4144
+ENSG00000000419.13                      80.7108
+ENSG00000000457.14                       6.0720
+ENSG00000000460.17                       2.2160
+ENSG00000000938.13                       8.4903
+ENSG00000000971.16                     143.9028</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Combine with metadata</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>df_ml_tpm <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">t</span>(tpm_filtered)) <span class="sc">%&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="st">"barcode"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(metadata, <span class="at">by =</span> <span class="st">"barcode"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>barcode) <span class="sc">%&gt;%</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">sample_type =</span> <span class="fu">factor</span>(sample_type))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(df_ml_tpm) <span class="co"># Check final dimensions</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]    44 22216</code></pre>
+</div>
+</div>
+</section>
+<section id="sec-data-spending" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="sec-data-spending"><span class="header-section-number">2.2</span> The Spending Plan: Data Splitting Strategies</h2>
+<p>In biology, samples are precious and often limited (<span class="math inline">\(n &lt; 100\)</span>). This scarcity makes the “Data Spending” phase the most high-stakes part of your project. If you use your data too aggressively during training, you will overfit; if you save too much for testing, your model will be too weak to learn the underlying biology. Finally, if you “peek” at the test set during pre-processing, you will introduce <strong>Data Leakage</strong><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, leading to overly optimistic performance estimates.</p>
+<section id="the-initial-split-training-vs.-testing" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="the-initial-split-training-vs.-testing"><span class="header-section-number">2.2.1</span> The Initial Split: Training vs.&nbsp;Testing</h3>
+<p>To ensure that our model’s performance is a true reflection of its ability to generalize, we must carefully partition our dataset at the very beginning of our analysis. For that, we divide our dataset into two primary components (<a href="#fig-data-split" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>):</p>
+<ol type="1">
+<li><p><strong>The Training Set</strong>: This subset is used to train the model. All pre-processing steps (normalization, feature selection, imputation) must be derived solely from this set. Often, we use 70% to 80% of the data for training.</p></li>
+<li><p><strong>The Test Set</strong>: This subset is held out and only used once at the very end to evaluate the model’s performance. It must remain completely unseen during training and pre-processing.</p></li>
+</ol>
+<blockquote class="blockquote">
+<p><strong>Note:</strong> Never perform normalization, feature selection, or imputation on the <em>entire</em> dataset before splitting. If you calculate the mean expression of a gene using all samples, the training set now “knows” something about the distribution of the test set. This is <strong>Data Leakage</strong>, and it leads to artificially inflated (and ultimately false) performance metrics.</p>
+</blockquote>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-data-split" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A visualization of the data splitting process showing raw data, training set, and test set with annotations.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-data-split-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="02_ml_basics_files/figure-html/fig-data-split-1.png" class="img-fluid figure-img" alt="A visualization of the data splitting process showing raw data, training set, and test set with annotations." width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-data-split-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.1: Data Spending: Training vs.&nbsp;Testing Sets
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>The easiest way to implement this split in R is using the <code>initial_split()</code> function from the <code>{rsample}</code> package, which is part of the <code>tidymodels</code> ecosystem.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the data into training and testing sets</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># For reproducibility</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>data_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(df_ml_tpm, <span class="at">prop =</span> <span class="fl">0.75</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>train_data_chol <span class="ot">&lt;-</span> <span class="fu">training</span>(data_split)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>test_data_chol  <span class="ot">&lt;-</span> <span class="fu">testing</span>(data_split)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Training samples:"</span>, <span class="fu">nrow</span>(train_data_chol), <span class="st">"</span><span class="sc">\n</span><span class="st">Testing samples:"</span>, <span class="fu">nrow</span>(test_data_chol))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training samples: 33 
+Testing samples: 11</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Proportion of sample types in training set:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Proportion of sample types in training set:</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(train_data_chol<span class="sc">$</span>sample_type)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+      Primary Tumor Solid Tissue Normal 
+          0.7878788           0.2121212 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Proportion of sample types in testing set:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Proportion of sample types in testing set:</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(test_data_chol<span class="sc">$</span>sample_type)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+      Primary Tumor Solid Tissue Normal 
+          0.8181818           0.1818182 </code></pre>
+</div>
+</div>
+</section>
+<section id="stratified-sampling" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="stratified-sampling"><span class="header-section-number">2.2.2</span> Stratified Sampling</h3>
+<p>In several biological contexts, the classes we are trying to predict are imbalanced, which can lead to misleading performance metrics if not handled properly. Menaing that one class (e.g., healthy controls) may vastly outnumber another (e.g., patients with a rare disease). If we randomly split the data, we risk creating training and testing sets that do not accurately represent the overall class distribution. This can lead to models that perform well on the majority class but poorly on the minority class, which is often of greater interest in biological studies.</p>
+<p>To address this, we use <strong>Stratified Sampling</strong> to ensure that the proportion of the outcome (e.g., disease status) is preserved in both the training and testing sets.</p>
+<p>In R, we will use the same function as before, but with a new argument.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the data into training and testing sets</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>) <span class="co"># For reproducibility</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>data_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(df_ml_tpm, <span class="at">prop =</span> <span class="fl">0.75</span>, <span class="at">strata =</span> sample_type)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>train_data_chol <span class="ot">&lt;-</span> <span class="fu">training</span>(data_split)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>test_data_chol  <span class="ot">&lt;-</span> <span class="fu">testing</span>(data_split)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Training samples:"</span>, <span class="fu">nrow</span>(train_data_chol), <span class="st">"</span><span class="sc">\n</span><span class="st">Testing samples:"</span>, <span class="fu">nrow</span>(test_data_chol))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Training samples: 32 
+Testing samples: 12</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Proportion of sample types in training set:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Proportion of sample types in training set:</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(train_data_chol<span class="sc">$</span>sample_type)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+      Primary Tumor Solid Tissue Normal 
+             0.8125              0.1875 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Proportion of sample types in testing set:</span><span class="sc">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Proportion of sample types in testing set:</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">prop.table</span>(<span class="fu">table</span>(test_data_chol<span class="sc">$</span>sample_type)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+      Primary Tumor Solid Tissue Normal 
+               0.75                0.25 </code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="sec-preprocessing" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="sec-preprocessing"><span class="header-section-number">2.3</span> Pre-processing for Biological Data</h2>
+<p>Biological data is rarely “model-ready.” We must address two major issues: <strong>Scale</strong> and <strong>Skewness</strong>.</p>
+<section id="scaling-and-centering" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="scaling-and-centering"><span class="header-section-number">2.3.1</span> Scaling and Centering</h3>
+<p>Most ML algorithms (like SVM or Lasso) use distance-based metrics. If <em>Gene A</em> has expression values in the thousands and <em>Gene B</em> in the decimals, the model will unfairly prioritize <em>Gene A</em>.</p>
+</section>
+<section id="near-zero-variance-nzv" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="near-zero-variance-nzv"><span class="header-section-number">2.3.2</span> Near-Zero Variance (NZV)</h3>
+<p>In RNA-seq, many genes show little to no variation across samples. These are “noise” for a predictive model and increase the “Curse of Dimensionality.”</p>
+</section>
+<section id="the-recipe-approach" class="level3" data-number="2.3.3">
+<h3 data-number="2.3.3" class="anchored" data-anchor-id="the-recipe-approach"><span class="header-section-number">2.3.3</span> The recipe Approach</h3>
+<p>In <code>{tidymodels}</code>, we define a “recipe” – a blueprint of transformations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Define a recipe for pre-processing</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># We will scale, center, and remove near-zero variance predictors</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>ml_recipe <span class="ot">&lt;-</span> <span class="fu">recipe</span>(sample_type <span class="sc">~</span> ., <span class="at">data =</span> train_data_chol) <span class="sc">%&gt;%</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span>   <span class="co"># Remove zero variance predictors</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_nzv</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span>  <span class="co"># Remove near-zero variance predictors</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_normalize</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> <span class="co"># Scale and center predictors  </span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_corr</span>(<span class="fu">all_predictors</span>(), <span class="at">threshold =</span> <span class="fl">0.9</span>) <span class="co"># Remove highly correlated predictors</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co"># View the recipe</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>ml_recipe</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Prepare the recipe</span></span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a><span class="co"># This estimates the required parameters from the training data</span></span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>ml_prep <span class="ot">&lt;-</span> <span class="fu">prep</span>(ml_recipe, <span class="at">training =</span> train_data_chol)</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply the pre-processing to training and testing data</span></span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>train_processed <span class="ot">&lt;-</span> <span class="fu">bake</span>(ml_prep, <span class="at">new_data =</span> train_data_chol)</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>test_processed  <span class="ot">&lt;-</span> <span class="fu">bake</span>(ml_prep, <span class="at">new_data =</span> test_data_chol)</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Check dimensions after pre-processing</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Near-zero variance predictors should be removed</span></span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(train_processed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]    32 15146</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">dim</span>(test_processed)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]    12 15146</code></pre>
+</div>
+</div>
+<p>With our data now properly split and pre-processed, we still have an issue: our training set is small. To build a robust model, we need to maximize the utility of our training data without overfitting. This is where <strong>Cross-Validation</strong> comes into play.</p>
+</section>
+</section>
+<section id="sec-cross-val" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="sec-cross-val"><span class="header-section-number">2.4</span> Cross-Validation: Maximizing Training Data Utility</h2>
+<p>Cross-Validation (CV) is a resampling technique used to evaluate ML models on a limited data sample. The most common form is <strong>k-Fold Cross-Validation</strong>. In k-Fold CV, the training data is divided into <em>k</em> subsets (or “folds”). The model is trained on <em>k-1</em> folds and validated on the remaining fold. This process is repeated <em>k</em> times, with each fold serving as the validation set once (<a href="#fig-cross-val" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>). The final performance metric is averaged across all folds.</p>
+<table class="caption-top table">
+<tbody>
+<tr class="odd">
+<td><strong>Term</strong></td>
+<td><strong>Definition</strong></td>
+</tr>
+<tr class="even">
+<td><strong>Fold</strong></td>
+<td>A subset of the training data.</td>
+</tr>
+<tr class="odd">
+<td><strong>Resampling</strong></td>
+<td>Repeating the split process.</td>
+</tr>
+<tr class="even">
+<td><strong>Hyperparameter</strong></td>
+<td>Settings of the model (not learned from data).</td>
+</tr>
+</tbody>
+</table>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-cross-val" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A visualization of k-fold cross-validation showing how samples are assigned to analysis and assessment roles across iterations.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-cross-val-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="02_ml_basics_files/figure-html/fig-cross-val-1.png" class="img-fluid figure-img" alt="A visualization of k-fold cross-validation showing how samples are assigned to analysis and assessment roles across iterations." width="960">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cross-val-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.2: K-Fold Cross-Validation: The Internal Loop
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>To implement k-Fold CV in R, we use the <code>vfold_cv()</code> function from <code>{rsample}</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create stratified 5-fold cross-validation</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>cv_folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(train_data_chol, </span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">v =</span> <span class="dv">5</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>cv_folds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  5-fold cross-validation 
+# A tibble: 5 × 2
+  splits         id   
+  &lt;list&gt;         &lt;chr&gt;
+1 &lt;split [25/7]&gt; Fold1
+2 &lt;split [25/7]&gt; Fold2
+3 &lt;split [26/6]&gt; Fold3
+4 &lt;split [26/6]&gt; Fold4
+5 &lt;split [26/6]&gt; Fold5</code></pre>
+</div>
+</div>
+<section id="sec-strat-cv" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="sec-strat-cv"><span class="header-section-number">2.4.1</span> Stratified K-Fold: Ensuring Biological Representation</h3>
+<p>As we have discussed in Section <a href="#sec-data-spending" class="quarto-xref"><span>Section 2.2</span></a>, biological datasets are often imbalanced. If we use standard K-Fold CV, we risk an iteration where the “Assessment” fold accidentally contains zero cases of a specific disease subtype. <strong>Stratified K-Fold</strong> ensures that each internal fold preserves the same ratio of classes as the original training set (<a href="#fig-strat-cv" class="quarto-xref">Figure&nbsp;<span>2.3</span></a>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-strat-cv" class="quarto-float quarto-figure quarto-figure-center anchored" alt="A visualization showing that each assessment fold contains a representative mix of Case and Control samples.">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-strat-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="02_ml_basics_files/figure-html/fig-strat-cv-1.png" class="img-fluid figure-img" alt="A visualization showing that each assessment fold contains a representative mix of Case and Control samples." width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-strat-cv-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.3: Stratified K-Fold Cross-Validation
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>In R, implementing this is as simple as adding the <code>strata</code> argument to your resampling function:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create stratified 5-fold cross-validation</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>cv_folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(train_data_chol, </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>                     <span class="at">v =</span> <span class="dv">5</span>, </span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>                     <span class="at">strata =</span> sample_type)</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>cv_folds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  5-fold cross-validation using stratification 
+# A tibble: 5 × 2
+  splits         id   
+  &lt;list&gt;         &lt;chr&gt;
+1 &lt;split [24/8]&gt; Fold1
+2 &lt;split [26/6]&gt; Fold2
+3 &lt;split [26/6]&gt; Fold3
+4 &lt;split [26/6]&gt; Fold4
+5 &lt;split [26/6]&gt; Fold5</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="summary-and-concluding-remarks" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="summary-and-concluding-remarks"><span class="header-section-number">2.5</span> Summary and Concluding Remarks</h2>
+<p>In this Chapter, we have established the “infrastructure” of a machine learning project. We moved beyond simple data loading to a rigorous pipeline that respects biological complexity and statistical integrity.</p>
+<section id="key-takeaways" class="level3" data-number="2.5.1">
+<h3 data-number="2.5.1" class="anchored" data-anchor-id="key-takeaways"><span class="header-section-number">2.5.1</span> Key Takeaways</h3>
+<ul>
+<li><p><strong>The Mindset Shift</strong>: We moved from <span class="math inline">\(p\)</span>-values (inference) to Generalization Error (prediction).</p></li>
+<li><p><strong>Data Spending</strong>: We learned that the Test Set is a “Locked Vault” that must remain untouched until the very end to prevent <strong>Data Leakage</strong>.</p></li>
+<li><p><strong>Feature Engineering</strong>: Using <code>{tidymodels}</code> recipes, we automated the removal of Near-Zero Variance (NZV) genes and normalized high-throughput counts to prevent feature scale bias.</p></li>
+<li><p><strong>Validation</strong>: We implemented Cross-Validation to maximize our small biological sample size (<span class="math inline">\(n\)</span>) while maintaining a “mock” testing environment.</p></li>
+</ul>
+</section>
+<section id="final-remarks" class="level3" data-number="2.5.2">
+<h3 data-number="2.5.2" class="anchored" data-anchor-id="final-remarks"><span class="header-section-number">2.5.2</span> Final Remarks</h3>
+<p>You now have a “processed” dataset (<code>train_processed</code>) and a validation strategy (<code>cv_folds</code>). However, we haven’t actually looked at our data yet. In the next chapter, we will explore <strong>Unsupervised Learning</strong>. We will use Dimensionality Reduction (PCA, tSNE, UMAP) to see if our biological groups (Cases vs.&nbsp;Controls) naturally separate before we ever try to “force” a model to learn them.</p>
+
+
+</section>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p><strong>Data Leakage</strong> occurs when information from outside the training dataset is used to create the model. This can lead to overly optimistic performance estimates because the model has effectively “seen” parts of the test data during training.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./01_intro.html" class="pagination-link" aria-label="Introduction">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Introduction</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./03_ml_unsupervised.html" class="pagination-link" aria-label="Unsupervised Machine Learning - Dimensionality Reduction and Clustering">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Unsupervised Machine Learning - Dimensionality Reduction and Clustering</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

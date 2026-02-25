@@ -1,0 +1,27 @@
+project:
+  type: book
+
+book:
+  title: "Machine Learning for Bioinformatics"
+  author: "Deisy Morselli Gysi"
+  date: "1/20/2026"
+  chapters:
+    - index.qmd
+    - 01_intro.qmd
+    - 02_ml_basics.qmd
+    - 03_ml_unsupervised.qmd
+    - 04_ml_supervised.qmd
+    - 05_ml_deep_learning.qmd
+    - 06_ml_evaluation.qmd
+    - references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+  pdf:
+    documentclass: scrreprt
+
+editor: visual
+
