@@ -1,0 +1,391 @@
+# The Core Workflow of ML & Biological Pre-processing
+
+In the transition from classical biostatistics to Machine Learning, the most critical shift is moving from **explaining the past** to **predicting the future**.
+
+This means that, unlike traditional hypothesis testing where we focus on $p$-values and confidence intervals, in ML we prioritize **out-of-sample performance**, or well can we generalize to new, unseen data.
+
+While a $p$-value tells us how unlikely a result is under the null hypothesis, an ML model's utility is measured by its **Generalization Error**: how well it performs on a sample it has never seen before.
+
+## The ML Workflow Overview
+
+A robust ML pipeline for biological data follows these non-negotiable steps:
+
+1.  **Data Cleaning**: Handling NAs and filtering low-variance features (e.g., genes with near-zero counts).
+2.  **Data Spending**: Splitting the data into training and testing sets to prevent data leakage.
+3.  **Biological Pre-processing**: Normalizing, filtering, and transforming biological data
+4.  **Model Training**: Fitting the algorithm to the training data.
+5.  **Evaluation**: Testing the "unseen" data to see if the model actually learned biology or just memorized noise.
+
+For our course, we will use the TCGA Cholangiocarcinoma (CHOL) cohort. We will use the `{TCGAbiolinks}` package to download and prepare the data.
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+# Prepare our Data for Machine Learning with 
+# TCGA Cholangiocarcinoma (CHOL) Cohort
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+library(tidyverse)
+
+# 1. Query only the Cholangiocarcinoma cohort
+query_chol <- GDCquery(
+  project = "TCGA-CHOL",
+  data.category = "Transcriptome Profiling",
+  data.type = "Gene Expression Quantification",
+  workflow.type = "STAR - Counts"
+)
+#  Load the data into a SummarizedExperiment object
+chol_se <- GDCprepare(query_chol) 
+
+# 2. Download and prepare the data
+# Extract TPM using 
+tpm_data <- assay(chol_se, "tpm_unstrand")
+
+# 3. Quick Metadata Link
+metadata <- as.data.frame(colData(chol_se)) %>%
+  select(barcode, sample_type)
+head(metadata)
+
+# 4. ML Preparation (Transpose)
+# Often in ML, TPM or FPKM values are used directly
+# We need the samples as rows and genes as columns
+# We filter for low-expression genes to remove noise
+# For TPM, a common threshold is > 0.1 or > 1 in a certain % of samples
+keep <- rowSums(tpm_data > 1) >= 5
+tpm_filtered <- tpm_data[keep, ]
+dim(tpm_filtered) # Check dimensions after filtering
+
+head(tpm_filtered[, 1:5]) # View first 5 samples for first few genes
+
+## Combine with metadata
+df_ml_tpm <- as.data.frame(t(tpm_filtered)) %>%
+  rownames_to_column("barcode") %>%
+  inner_join(metadata, by = "barcode") %>%
+  select(-barcode) %>%
+  mutate(sample_type = factor(sample_type))
+dim(df_ml_tpm) # Check final dimensions
+```
+
+## The Spending Plan: Data Splitting Strategies {#sec-data-spending}
+
+In biology, samples are precious and often limited ($n < 100$). This scarcity makes the "Data Spending" phase the most high-stakes part of your project. If you use your data too aggressively during training, you will overfit; if you save too much for testing, your model will be too weak to learn the underlying biology. Finally, if you "peek" at the test set during pre-processing, you will introduce **Data Leakage**[^02_ml_basics-1], leading to overly optimistic performance estimates.
+
+[^02_ml_basics-1]: **Data Leakage** occurs when information from outside the training dataset is used to create the model. This can lead to overly optimistic performance estimates because the model has effectively "seen" parts of the test data during training.
+
+### The Initial Split: Training vs. Testing
+
+To ensure that our model's performance is a true reflection of its ability to generalize, we must carefully partition our dataset at the very beginning of our analysis. For that, we divide our dataset into two primary components (@fig-data-split):
+
+1.  **The Training Set**: This subset is used to train the model. All pre-processing steps (normalization, feature selection, imputation) must be derived solely from this set. Often, we use 70% to 80% of the data for training.
+
+2.  **The Test Set**: This subset is held out and only used once at the very end to evaluate the model's performance. It must remain completely unseen during training and pre-processing.
+
+> **Note:** Never perform normalization, feature selection, or imputation on the *entire* dataset before splitting. If you calculate the mean expression of a gene using all samples, the training set now "knows" something about the distribution of the test set. This is **Data Leakage**, and it leads to artificially inflated (and ultimately false) performance metrics.
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+#| label: fig-data-split
+#| fig-cap: "Data Spending: Training vs. Testing Sets"
+#| fig-width: 10
+#| fig-height: 10
+#| fig-alt: "A visualization of the data splitting process showing raw data, training set, and test set with annotations."
+
+library(ggplot2)
+library(patchwork)
+library(dplyr)
+
+# --- 1. DATA GENERATION ---
+set.seed(42)
+n_total <- 20
+p_features <- 30 
+
+# Create ID strings consistently
+sample_ids <- sprintf("S-%02d", 1:n_total)
+
+full_df <- expand.grid(SampleID = sample_ids, Gene = 1:p_features) %>%
+  group_by(SampleID) %>%
+  mutate(
+    Expression = rnorm(n()),
+    # Assigning Class based on the numeric part of the ID string
+    Class = ifelse(as.numeric(gsub("S-", "", SampleID)) <= 10, "Control", "Case")
+  ) %>%
+  ungroup()
+
+# --- FIXED SAMPLING ---
+# We sample from the actual string vector 'sample_ids' so the formats match
+train_id_pool <- sample(sample_ids, 16)
+test_id_pool  <- setdiff(sample_ids, train_id_pool)
+
+# --- 2. PLOT COMPONENTS ---
+theme_bio <- theme_minimal() + 
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "none",
+    plot.title = element_text(face = "bold", size = 12),
+    plot.subtitle = element_text(size = 9)
+  )
+
+# A. RAW DATA
+p_raw <- ggplot(full_df, aes(x = Gene, y = SampleID, fill = Class, alpha = Expression)) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  scale_fill_manual(values = c("Case" = "#2c7bb6", "Control" = "#d7191c")) +
+  theme_bio +
+  labs(title = "Raw Omics Data (N Samples x P Features)")
+
+# B. TRAINING SET 
+# Centering label by using Inf/-Inf or middle of the actual factor levels
+p_train <- ggplot(full_df %>% filter(SampleID %in% train_id_pool), 
+                  aes(x = Gene, y = SampleID, fill = Class, alpha = Expression)) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  scale_fill_manual(values = c("Case" = "#2c7bb6", "Control" = "#d7191c")) +
+  theme_bio +
+  annotate("label", x = p_features/2, y = 8.5, label = "USED FOR:\nModel Learning\nPre-processing\nCross-Validation", 
+           fill = "white", alpha = 0.8, size = 3, fontface = "bold") +
+  labs(title = "TRAINING SET (80% N)")
+
+# C. TEST SET
+p_test <- ggplot(full_df %>% filter(SampleID %in% test_id_pool), 
+                 aes(x = Gene, y = SampleID, fill = Class, alpha = Expression)) +
+  geom_tile(color = "white", linewidth = 0.1) +
+  scale_fill_manual(values = c("Case" = "#2c7bb6", "Control" = "#d7191c")) +
+  theme_bio +
+  theme(panel.border = element_rect(color = "darkred", fill = NA, linewidth = 2)) +
+  annotate("label", x = p_features/2, y = 2.5, label = "LOCKED VAULT\nFinal Unbiased\nEvaluation", 
+           fill = "white", alpha = 0.9, color = "darkred", size = 3, fontface = "bold") +
+  labs(title = "TEST SET (20% N)")
+
+# --- 3. ASSEMBLY ---
+(p_raw) / (p_train + p_test) + 
+  plot_layout(heights = c(1, 1.5)) +
+  plot_annotation(
+    title = "The Golden Rule: Partitioning Biological Samples",
+    subtitle = "Random sampling ensures our sets represent the overall population variance.",
+    theme = theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5))
+  )
+```
+
+The easiest way to implement this split in R is using the `initial_split()` function from the `{rsample}` package, which is part of the `tidymodels` ecosystem.
+
+```{r, warning=FALSE, message=FALSE}
+# Split the data into training and testing sets
+library(tidymodels)
+set.seed(42) # For reproducibility
+data_split <- initial_split(df_ml_tpm, prop = 0.75)
+train_data_chol <- training(data_split)
+test_data_chol  <- testing(data_split)
+
+cat("Training samples:", nrow(train_data_chol), "\nTesting samples:", nrow(test_data_chol))
+cat("Proportion of sample types in training set:\n")
+print(prop.table(table(train_data_chol$sample_type)))
+cat("Proportion of sample types in testing set:\n")
+print(prop.table(table(test_data_chol$sample_type)))
+```
+
+### Stratified Sampling
+
+In several biological contexts, the classes we are trying to predict are imbalanced, which can lead to misleading performance metrics if not handled properly. Menaing that one class (e.g., healthy controls) may vastly outnumber another (e.g., patients with a rare disease). If we randomly split the data, we risk creating training and testing sets that do not accurately represent the overall class distribution. This can lead to models that perform well on the majority class but poorly on the minority class, which is often of greater interest in biological studies.
+
+To address this, we use **Stratified Sampling** to ensure that the proportion of the outcome (e.g., disease status) is preserved in both the training and testing sets.
+
+In R, we will use the same function as before, but with a new argument.
+
+```{r, warning=FALSE, message=FALSE}
+# Split the data into training and testing sets
+library(tidymodels)
+set.seed(42) # For reproducibility
+data_split <- initial_split(df_ml_tpm, prop = 0.75, strata = sample_type)
+train_data_chol <- training(data_split)
+test_data_chol  <- testing(data_split)
+
+cat("Training samples:", nrow(train_data_chol), "\nTesting samples:", nrow(test_data_chol))
+cat("Proportion of sample types in training set:\n")
+print(prop.table(table(train_data_chol$sample_type)))
+cat("Proportion of sample types in testing set:\n")
+print(prop.table(table(test_data_chol$sample_type)))
+```
+
+## Pre-processing for Biological Data {#sec-preprocessing}
+
+Biological data is rarely "model-ready." We must address two major issues: **Scale** and **Skewness**.
+
+### Scaling and Centering
+
+Most ML algorithms (like SVM or Lasso) use distance-based metrics. If *Gene A* has expression values in the thousands and *Gene B* in the decimals, the model will unfairly prioritize *Gene A*.
+
+### Near-Zero Variance (NZV)
+
+In RNA-seq, many genes show little to no variation across samples. These are "noise" for a predictive model and increase the "Curse of Dimensionality."
+
+### The recipe Approach
+
+In `{tidymodels}`, we define a "recipe" – a blueprint of transformations.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE}
+library(tidymodels)
+# Define a recipe for pre-processing
+# We will scale, center, and remove near-zero variance predictors
+ml_recipe <- recipe(sample_type ~ ., data = train_data_chol) %>%
+  step_zv(all_predictors()) %>%   # Remove zero variance predictors
+  step_nzv(all_predictors()) %>%  # Remove near-zero variance predictors
+  step_normalize(all_predictors()) %>% # Scale and center predictors  
+  step_corr(all_predictors(), threshold = 0.9) # Remove highly correlated predictors
+
+# View the recipe
+ml_recipe
+
+# Prepare the recipe
+# This estimates the required parameters from the training data
+ml_prep <- prep(ml_recipe, training = train_data_chol)
+# Apply the pre-processing to training and testing data
+train_processed <- bake(ml_prep, new_data = train_data_chol)
+test_processed  <- bake(ml_prep, new_data = test_data_chol)
+# Check dimensions after pre-processing
+# Near-zero variance predictors should be removed
+dim(train_processed)
+dim(test_processed)
+```
+
+With our data now properly split and pre-processed, we still have an issue: our training set is small. To build a robust model, we need to maximize the utility of our training data without overfitting. This is where **Cross-Validation** comes into play.
+
+## Cross-Validation: Maximizing Training Data Utility {#sec-cross-val}
+
+Cross-Validation (CV) is a resampling technique used to evaluate ML models on a limited data sample. The most common form is **k-Fold Cross-Validation**. In k-Fold CV, the training data is divided into *k* subsets (or "folds"). The model is trained on *k-1* folds and validated on the remaining fold. This process is repeated *k* times, with each fold serving as the validation set once (@fig-cross-val). The final performance metric is averaged across all folds.
+
+|                    |                                                |
+|--------------------|------------------------------------------------|
+| **Term**           | **Definition**                                 |
+| **Fold**           | A subset of the training data.                 |
+| **Resampling**     | Repeating the split process.                   |
+| **Hyperparameter** | Settings of the model (not learned from data). |
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+#| label: fig-cross-val
+#| fig-cap: "K-Fold Cross-Validation: The Internal Loop"
+#| fig-width: 10
+#| fig-height: 10
+#| fig-alt: "A visualization of k-fold cross-validation showing how samples are assigned to analysis and assessment roles across iterations."
+library(tidyr)
+
+# We take our 16 training IDs and assign them to 4 folds
+cv_samples <- data.frame(SampleID = train_id_pool) %>%
+  mutate(
+    # Assign 4 samples to each of the 4 folds
+    Fold_Assignment = rep(paste("Fold", 1:4), each = 4)
+  )
+
+# To visualize CV, we need to show what happens in each of the 4 iterations
+cv_viz_data <- expand.grid(Iteration = paste("Iteration", 1:4), SampleID = train_id_pool) %>%
+  left_join(cv_samples, by = "SampleID") %>%
+  mutate(
+    # In Iteration 1, Fold 1 is 'Assessment'. In Iteration 2, Fold 2 is 'Assessment', etc.
+    Current_Fold = gsub("Iteration ", "Fold ", Iteration),
+    Role = ifelse(Fold_Assignment == Current_Fold, "Assessment (Hold-out)", "Analysis (Train)")
+  )
+
+ggplot(cv_viz_data, aes(x = 1, y = SampleID, fill = Role)) +
+  geom_tile(color = "white", linewidth = 0.5) +
+  facet_wrap(~Iteration, nrow = 1) +
+  scale_fill_manual(values = c("Analysis (Train)" = "#abd9e9", "Assessment (Hold-out)" = "#fdae61")) +
+  theme_minimal() +
+  theme(
+    axis.title = element_blank(),
+    axis.text.x = element_blank(),
+    panel.grid = element_blank(),
+    legend.position = "bottom",
+    strip.text = element_text(face = "bold")
+  ) +
+  labs(
+    title = "K-Fold Cross-Validation: The Internal Loop",
+    subtitle = "The model never sees the Assessment samples during the training of that specific iteration.",
+    fill = "Data Role:"
+  )
+```
+
+To implement k-Fold CV in R, we use the `vfold_cv()` function from `{rsample}`.
+
+```{r, warning=FALSE, message=FALSE}
+# Create stratified 5-fold cross-validation
+set.seed(123)
+cv_folds <- vfold_cv(train_data_chol, 
+                     v = 5)
+
+cv_folds
+```
+
+### Stratified K-Fold: Ensuring Biological Representation {#sec-strat-cv}
+
+As we have discussed in Section @sec-data-spending, biological datasets are often imbalanced. If we use standard K-Fold CV, we risk an iteration where the "Assessment" fold accidentally contains zero cases of a specific disease subtype. **Stratified K-Fold** ensures that each internal fold preserves the same ratio of classes as the original training set (@fig-strat-cv).
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+#| label: fig-strat-cv
+#| fig-cap: "Stratified K-Fold Cross-Validation"
+#| fig-alt: "A visualization showing that each assessment fold contains a representative mix of Case and Control samples."
+
+library(ggplot2)
+library(dplyr)
+
+# Re-using the logic for stratification visualization
+set.seed(123)
+train_metadata <- full_df %>%
+  filter(SampleID %in% train_id_pool) %>%
+  distinct(SampleID, Class) %>%
+  group_by(Class) %>%
+  mutate(Fold_Num = sample(rep(1:4, length.out = n()))) %>%
+  ungroup()
+
+cv_strat_viz <- expand.grid(Iteration = 1:4, SampleID = train_id_pool) %>%
+  left_join(train_metadata, by = "SampleID") %>%
+  mutate(
+    Iteration_Lab = paste("Iteration", Iteration),
+    Role = ifelse(Fold_Num == Iteration, "Assessment (Hold-out)", "Analysis (Train)")
+  )
+
+ggplot(cv_strat_viz, aes(x = 1, y = SampleID, fill = Role)) +
+  geom_tile(aes(color = Class), linewidth = 2.8) +
+  facet_wrap(~Iteration_Lab, nrow = 1) +
+  scale_fill_manual(values = c("Analysis (Train)" = "#abd9e9", "Assessment (Hold-out)" = "#fdae61")) +
+  scale_color_manual(values = c("Case" = "#2c7bb6", "Control" = "#d7191c")) +
+  theme_minimal() +
+  theme(
+    axis.title = element_blank(), axis.text.x = element_blank(),
+    panel.grid = element_blank(), legend.position = "bottom",
+    strip.text = element_text(face = "bold", size = 10),
+    axis.text.y = element_text(size = 7)
+  ) +
+  labs(title = "Stratified 4-Fold Cross-Validation", 
+       fill = "Role:", color = "Class Border:")
+```
+
+In R, implementing this is as simple as adding the `strata` argument to your resampling function:
+
+```{r, warning=FALSE, message=FALSE}
+# Create stratified 5-fold cross-validation
+set.seed(123)
+cv_folds <- vfold_cv(train_data_chol, 
+                     v = 5, 
+                     strata = sample_type)
+cv_folds
+```
+
+## Summary and Concluding Remarks
+
+In this Chapter, we have established the "infrastructure" of a machine learning project. We moved beyond simple data loading to a rigorous pipeline that respects biological complexity and statistical integrity.
+
+### Key Takeaways
+
+-   **The Mindset Shift**: We moved from $p$-values (inference) to Generalization Error (prediction).
+
+-   **Data Spending**: We learned that the Test Set is a "Locked Vault" that must remain untouched until the very end to prevent **Data Leakage**.
+
+-   **Feature Engineering**: Using `{tidymodels}` recipes, we automated the removal of Near-Zero Variance (NZV) genes and normalized high-throughput counts to prevent feature scale bias.
+
+-   **Validation**: We implemented Cross-Validation to maximize our small biological sample size ($n$) while maintaining a "mock" testing environment.
+
+### Final Remarks
+
+You now have a "processed" dataset (`train_processed`) and a validation strategy (`cv_folds`). However, we haven't actually looked at our data yet. In the next chapter, we will explore **Unsupervised Learning**. We will use Dimensionality Reduction (PCA, tSNE, UMAP) to see if our biological groups (Cases vs. Controls) naturally separate before we ever try to "force" a model to learn them.
+
+```{r, echo=FALSE}
+## Save the processed data and CV folds for the next chapter
+save.image(file = "data/processed_chol.RData", compress = "xz")
+```
+
