@@ -6,3 +6,6 @@
 /.quarto/
 **/*.quarto_ipynb
 *.tsv
+
+/.quarto/
+/_site/
