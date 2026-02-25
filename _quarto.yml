@@ -1,6 +1,7 @@
 project:
-  type: book
-
+  type: website
+  output-dir: docs
+  
 book:
   title: "Machine Learning for Bioinformatics"
   author: "Deisy Morselli Gysi"
@@ -24,4 +25,5 @@ format:
     documentclass: scrreprt
 
 editor: visual
+
 
